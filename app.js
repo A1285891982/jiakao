@@ -7,6 +7,7 @@
 
   var EXAM_N = 100;      // 模考抽题数
   var PASS_LINE = 90;    // 及格线
+  var EXAM_TIME = 100 * 60; // 模考限时（秒）：100 分钟，时间到自动交卷
 
   var S = {
     sub: null,        // '1' | '4'
@@ -17,6 +18,10 @@
     answered: {},     // id -> true/false（答对/答错）
     correct: 0,
     wrong: 0,
+    deadline: 0,      // 模考截止时间戳（ms），以时间戳为准，切后台回来也准
+    timeLeft: 0,      // 剩余秒数（展示与测试用）
+    timeUp: false,    // 是否因"时间到"自动交卷
+    timerId: null,
   };
 
   function wrongKey(sub) { return "jk_wrong_" + sub; }
@@ -68,6 +73,7 @@
 
   /* ---------- 首页 ---------- */
   function renderHome() {
+    stopTimer();                       // 离开模考务必停表
     $("wrong1").textContent = "错题 " + getWrong("1").length;
     $("wrong4").textContent = "错题 " + getWrong("4").length;
     show("home");
@@ -102,6 +108,7 @@
     } catch (e) { /* 隐私模式等忽略 */ }
     S.list = picked;
     resetRun();
+    startTimer();     // 模考限时 100 分钟，时间到自动交卷
     $("quizTitle").textContent = subName(sub) + " · 随机模考";
     $("qTotal").textContent = S.list.length;
     show("quiz"); render();
@@ -121,6 +128,42 @@
   function resetRun() {
     S.idx = 0; S.selected = {}; S.answered = {}; S.correct = 0; S.wrong = 0;
     S.justAnswered = false;
+    S.timeUp = false;
+  }
+
+  /* ---------- 模考倒计时（100 分钟） ----------
+     以「截止时间戳」为准而非累加，页面切到后台被浏览器节流后回来依然准确。
+     时间归零 → 立即结束考试，按当前成绩计分（未作答的题不扣分）。 */
+  function startTimer() {
+    stopTimer();
+    S.timeUp = false;
+    S.deadline = Date.now() + EXAM_TIME * 1000;
+    tickTimer();
+    S.timerId = setInterval(tickTimer, 250);
+  }
+  function stopTimer() {
+    if (S.timerId) { clearInterval(S.timerId); S.timerId = null; }
+  }
+  function tickTimer() {
+    var left = Math.max(0, Math.round((S.deadline - Date.now()) / 1000));
+    S.timeLeft = left;
+    updateTimerUI();
+    if (left <= 0) {
+      stopTimer();
+      S.timeUp = true;
+      endScreen();          // 时间到：不管做到第几题，直接交卷
+    }
+  }
+  function updateTimerUI() {
+    var el = $("sbTime");
+    if (!el) return;
+    var m = Math.floor(S.timeLeft / 60), sec = S.timeLeft % 60;
+    el.textContent = (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec;
+    var box = $("sbTimeBox");
+    if (box) {
+      box.classList.toggle("warn", S.timeLeft <= 300 && S.timeLeft > 60);   // 最后 5 分钟
+      box.classList.toggle("danger", S.timeLeft <= 60);                     // 最后 1 分钟
+    }
   }
 
   /* 当前得分（100 分制）：错 1 题扣 1 分 */
@@ -233,6 +276,7 @@
     $("sbDone").textContent = done;
     $("sbTotal").textContent = S.list.length;
     $("sbWrong").textContent = S.wrong;
+    updateTimerUI();
   }
 
   /* ---------- 交互 ---------- */
@@ -286,6 +330,7 @@
 
   /* ---------- 结束页 ---------- */
   function endScreen() {
+    stopTimer();                       // 结束即停表（正常做完 / 时间到 都会走这里）
     var total = S.list.length;
     var rate = total ? Math.round(S.correct / total * 100) : 0;
     var ring = document.querySelector(".score-ring");
@@ -295,15 +340,27 @@
       ring.style.setProperty("--p", score + "%");
       var color = score >= PASS_LINE ? "#14a44d" : (score >= 60 ? "#d97706" : "#e5484d");
       ring.style.setProperty("--ring-c", color);
-      $("endEmoji").textContent = score >= PASS_LINE ? "🏆" : (score >= 60 ? "💪" : "📖");
-      $("endTitle").textContent = "模考结束";
+      if (S.timeUp) {
+        // 时间到自动交卷：按当前成绩计分，未作答的题不扣分
+        $("endEmoji").textContent = "⏰";
+        $("endTitle").textContent = "时间到 · 自动交卷";
+      } else {
+        $("endEmoji").textContent = score >= PASS_LINE ? "🏆" : (score >= 60 ? "💪" : "📖");
+        $("endTitle").textContent = "模考结束";
+      }
       $("endRate").textContent = score + "分";
       $("endRateLbl").textContent = "本次得分";
       var pass = $("endPass");
       pass.className = "end-pass " + (score >= PASS_LINE ? "ok" : "err");
-      pass.textContent = score >= PASS_LINE
+      var passTxt = score >= PASS_LINE
         ? "✓ 已达合格线（" + PASS_LINE + " 分）"
         : "✗ 未达合格线（" + PASS_LINE + " 分），再练练！";
+      if (S.timeUp) {
+        var un = total - Object.keys(S.answered).length;
+        passTxt = "⏰ 100 分钟已到，按当前成绩交卷" + (un > 0 ? "（未作答 " + un + " 题不扣分）" : "") + "<br />" + passTxt;
+        pass.className = "end-pass " + (score >= PASS_LINE ? "ok" : "err");
+      }
+      pass.innerHTML = passTxt;
       $("btnRestart").textContent = "再抽一套（换 " + EXAM_N + " 题）";
     } else {
       ring.style.setProperty("--p", rate + "%");
@@ -325,6 +382,12 @@
     $("endCorrect").textContent = S.correct;
     $("endWrong").textContent = S.wrong;
     $("endTotal").textContent = total;
+    // 未作答统计（仅模考显示，帮助看清"没做完"的部分）
+    var unBox = $("endUnansweredBox");
+    if (unBox) {
+      $("endUnanswered").textContent = total - Object.keys(S.answered).length;
+      unBox.style.display = S.mode === "exam" ? "" : "none";
+    }
     var remain = getWrong(S.sub).length;
     $("endWrongCnt").textContent = remain;
     $("btnReview").style.display = remain > 0 ? "" : "none";
@@ -349,6 +412,13 @@
     else startPractice(S.sub);
   };
   $("btnHome").onclick = renderHome;
+
+  /* 供自动化测试驱动（浏览器里也无副作用，仅读状态/模拟时间到） */
+  window.__JK_TEST__ = {
+    examTime: EXAM_TIME,
+    timeLeft: function () { return S.timeLeft; },
+    expire: function () { S.deadline = Date.now() - 1; tickTimer(); },
+  };
 
   // 启动
   renderHome();

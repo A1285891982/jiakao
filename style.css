@@ -147,6 +147,15 @@ body {
 .score-bar .sb-meta b { font-weight: 700; color: #fff; }
 .score-bar .sb-meta .sb-err { color: #ff9ea1; }
 
+/* 模考倒计时（仅模考显示）：最后 5 分钟转黄，最后 1 分钟转红并闪烁 */
+.score-bar .sb-time { display: flex; align-items: center; gap: 5px; font-size: 12px; opacity: .95; }
+.score-bar .sb-time span { opacity: .65; font-size: 13px; }
+.score-bar .sb-time b { font-size: 18px; font-weight: 800; line-height: 1; color: #fff;
+  font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+.score-bar .sb-time.warn b { color: #ffd166; }
+.score-bar .sb-time.danger b { color: #ff6b6b; animation: sbBlink 1s steps(2, start) infinite; }
+@keyframes sbBlink { 50% { opacity: .3; } }
+
 /* ---------- 结束页 ---------- */
 #end { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .end-card { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 34px 26px; width: 100%; text-align: center; }
@@ -183,4 +192,13 @@ body {
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
   }
   .score-bar { bottom: calc(8px + env(safe-area-inset-bottom)); }
+}
+
+/* ---------- 小屏适配：模考计分条现在有「倒计时 + 分数 + 已答/错题」四块，缩小间距 ---------- */
+@media (max-width: 400px) {
+  .score-bar { padding: 9px 12px; }
+  .score-bar .sb-score b { font-size: 23px; }
+  .score-bar .sb-time b { font-size: 16px; }
+  .score-bar .sb-time span { font-size: 12px; }
+  .score-bar .sb-meta { gap: 8px; font-size: 11.5px; }
 }

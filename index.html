@@ -39,7 +39,7 @@
               <span class="act-t">顺序练习</span><span class="act-s">全 500 题 · 逐题解析</span>
             </button>
             <button class="act-btn primary" data-sub="1" data-mode="exam">
-              <span class="act-t">随机模考</span><span class="act-s">每次抽 100 题 · 100 分制</span>
+              <span class="act-t">随机模考</span><span class="act-s">抽 100 题 · 限时 100 分钟</span>
             </button>
           </div>
         </div>
@@ -57,7 +57,7 @@
               <span class="act-t">顺序练习</span><span class="act-s">全 500 题 · 逐题解析</span>
             </button>
             <button class="act-btn primary" data-sub="4" data-mode="exam">
-              <span class="act-t">随机模考</span><span class="act-s">每次抽 100 题 · 100 分制</span>
+              <span class="act-t">随机模考</span><span class="act-s">抽 100 题 · 限时 100 分钟</span>
             </button>
           </div>
         </div>
@@ -65,6 +65,7 @@
       <p class="tip">
         · <b>顺序练习</b>：按题号从第 1 题做到第 500 题，选完立即给答案与解析。<br />
         · <b>随机模考</b>：每次进入从 500 题里<b>纯随机抽 100 题</b>（每次都不一样），底部实时计分，满分 100 分、答错 1 题扣 1 分，90 分及格。<br />
+        · <b>限时 100 分钟</b>：模考倒计时走完会自动交卷，按当时成绩计分（没做完的题不扣分）。<br />
         · 答错的题自动进「错题本」，结束页可复习或重做。
       </p>
     </section>
@@ -88,6 +89,7 @@
 
       <!-- 模考计分条（仅随机模考模式显示，贴在屏幕底部） -->
       <div id="scoreBar" class="score-bar hidden">
+        <div class="sb-time" id="sbTimeBox"><span>⏱</span><b id="sbTime">100:00</b></div>
         <div class="sb-score"><b id="curScore">100</b><span>分</span></div>
         <div class="sb-meta">
           <span>已答 <b id="sbDone">0</b>/<span id="sbTotal">100</span></span>
@@ -109,6 +111,7 @@
         <div class="end-stats">
           <div><b id="endCorrect">0</b><span>答对</span></div>
           <div><b id="endWrong">0</b><span>答错</span></div>
+          <div id="endUnansweredBox"><b id="endUnanswered">0</b><span>未答</span></div>
           <div><b id="endTotal">0</b><span>总题数</span></div>
         </div>
         <div class="end-actions">
