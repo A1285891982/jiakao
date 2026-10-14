@@ -1,7 +1,7 @@
 /* 驾考通 PWA Service Worker —— 自动生成，请勿手改（改 build_sw.py） */
 /* 作用：把题目和全部题图缓存到手机本地，之后断网也能刷题；
         iPhone「添加到主屏幕」后即为可离线使用的独立 App。 */
-const CACHE = 'jk-4c3a672d';
+const CACHE = 'jk-e4d1094b';
 const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png', './question-bank/index.html', './mnemonics/index.html', './mnemonics/img/mn_color.jpg', './mnemonics/img/mn_signs.jpg', './mnemonics/img/mn_signs_all.jpg', './mnemonics/img/mn_lights.jpg', './mnemonics/img/mn_marks.jpg', './mnemonics/img/mn_fine200.jpg'];
 const IMAGES = [
   './img/ke1/004.jpg',
@@ -377,6 +377,24 @@ self.addEventListener('fetch', function (e) {
           var root = location.pathname.replace(/[^/]*$/, '').replace(/\/+$/, '');
           return path === root || path === '' ? caches.match('./index.html') : Response.error();
         });
+      })
+    );
+    return;
+  }
+
+  /* 核心小文件（style.css / app.js）：网络优先 —— 它们必须与 HTML 同一版本，
+     否则会渲染出「新 HTML + 旧 CSS」的混搭页（口诀速记卡片曾因此整卡丢样式）。
+     文件很小（几十 KB），每次联网校验代价可忽略；离线时回退缓存。 */
+  if (/\/style\.css$|\/app\.js$/.test(url.pathname)) {
+    e.respondWith(
+      fetch(req, { cache: 'no-cache' }).then(function (res) {
+        if (res && res.ok && res.type === 'basic') {
+          var cp = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(req, cp); });
+        }
+        return res;
+      }).catch(function () {
+        return caches.match(req, { ignoreSearch: true });
       })
     );
     return;
