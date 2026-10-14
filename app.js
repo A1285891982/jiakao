@@ -7,7 +7,7 @@
 
   var EXAM_N = 100;      // 模考抽题数
   var PASS_LINE = 90;    // 及格线
-  var EXAM_TIME = 100 * 60; // 模考限时（秒）：100 分钟，时间到自动交卷
+  var EXAM_TIME = 45 * 60; // 模考限时（秒）：45 分钟（对齐正规考场时长），时间到自动交卷
 
   var S = {
     sub: null,        // '1' | '4'
@@ -205,7 +205,7 @@
       S.list = picked;
       resetRun();
       S.resumed = false;
-      startTimer();     // 模考限时 100 分钟，时间到自动交卷
+      startTimer();     // 模考限时 45 分钟，时间到自动交卷
       $("quizTitle").textContent = subName(sub) + " · 随机模考";
     }
     $("qTotal").textContent = S.list.length;
@@ -239,7 +239,7 @@
     S.resumed = false;
   }
 
-  /* ---------- 模考倒计时（100 分钟） ----------
+  /* ---------- 模考倒计时（45 分钟） ----------
      以「截止时间戳」为准而非累加，页面切到后台被浏览器节流后回来依然准确。
      时间归零 → 立即结束考试，按当前成绩计分（未作答的题不扣分）。 */
   function startTimer() {
@@ -471,7 +471,7 @@
         : "✗ 未达合格线（" + PASS_LINE + " 分），再练练！";
       if (S.timeUp) {
         var un = total - Object.keys(S.answered).length;
-        passTxt = "⏰ 100 分钟已到，按当前成绩交卷" + (un > 0 ? "（未作答 " + un + " 题不扣分）" : "") + "<br />" + passTxt;
+        passTxt = "⏰ 45 分钟已到，按当前成绩交卷" + (un > 0 ? "（未作答 " + un + " 题不扣分）" : "") + "<br />" + passTxt;
         pass.className = "end-pass " + (score >= PASS_LINE ? "ok" : "err");
       }
       pass.innerHTML = passTxt;
