@@ -70,6 +70,9 @@ body {
 }
 .quiz-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; }
 .txt-btn { border: none; background: none; color: var(--sub); font-size: 14px; cursor: pointer; }
+/* 续练时出现的「重头」按钮：醒目提示为「清空进度、从头开始」 */
+#btnRestartQuiz { color: #d97706; font-weight: 600; padding: 0 4px; }
+#btnRestartQuiz::before { content: "↺ "; }
 .progress { height: 6px; background: #dfe4ee; border-radius: 99px; overflow: hidden; }
 .progress .bar { height: 100%; width: 0; background: linear-gradient(90deg, #1f6feb, #4f93ff); transition: width .25s ease; }
 .progress-txt { text-align: center; color: var(--sub); font-size: 12px; margin: 7px 0 14px; }

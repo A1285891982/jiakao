@@ -22,7 +22,64 @@
     timeLeft: 0,      // 剩余秒数（展示与测试用）
     timeUp: false,    // 是否因"时间到"自动交卷
     timerId: null,
+    resumed: false,   // 本次是否为「续练」（用于显示「重头」按钮）
   };
+
+  /* ---------- 续练进度持久化 ----------
+     中途退出（关页面/切后台/点返回首页）都按 sub+mode 存一份进度到 localStorage；
+     再次进入同科目同模式时，若进度未完成则自动续到上次位置。模考还会存截止时间戳，
+     回来后倒计时按剩余时间继续；若离开太久已超时，进入即按当前成绩自动交卷。 */
+  function progKey(sub, mode) { return "jk_progress_" + sub + "_" + mode; }
+  function saveProgress() {
+    if (!S.list || !S.list.length) return;
+    if (S.mode !== "practice" && S.mode !== "review" && S.mode !== "exam") return;
+    if (S.sub == null) return;
+    try {
+      var data = {
+        sub: S.sub, mode: S.mode,
+        idx: S.idx,
+        selected: S.selected,
+        answered: S.answered,
+        correct: S.correct,
+        wrong: S.wrong,
+        list: S.list.map(function (q) { return q.id; }),
+        deadline: S.deadline || 0,
+      };
+      localStorage.setItem(progKey(S.sub, S.mode), JSON.stringify(data));
+    } catch (e) { /* 隐私模式等忽略 */ }
+  }
+  function loadProgress(sub, mode) {
+    try {
+      var raw = localStorage.getItem(progKey(sub, mode));
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || d.sub !== sub || d.mode !== mode || !Array.isArray(d.list)) return null;
+      return d;
+    } catch (e) { return null; }
+  }
+  function clearProgress(sub, mode) {
+    try { localStorage.removeItem(progKey(sub, mode)); } catch (e) {}
+  }
+  /* 有作答且未全部做完 → 可继续；否则视为已完成，应从头开始 */
+  function isResumable(p) {
+    if (!p || !p.list || !p.list.length) return false;
+    var answered = Object.keys(p.answered || {}).length;
+    return answered > 0 && answered < p.list.length;
+  }
+  function applyProgress(p) {
+    var byId = {};
+    DATA[S.sub].forEach(function (q) { byId[q.id] = q; });
+    S.list = p.list.map(function (id) { return byId[id]; }).filter(Boolean);
+    if (!S.list.length) S.list = DATA[S.sub].slice();
+    S.idx = Math.min(p.idx || 0, S.list.length - 1);
+    S.selected = p.selected || {};
+    S.answered = p.answered || {};
+    S.correct = p.correct || 0;
+    S.wrong = p.wrong || 0;
+    S.deadline = p.deadline || 0;
+    S.justAnswered = false;
+    S.timeUp = false;
+  }
 
   function wrongKey(sub) { return "jk_wrong_" + sub; }
   function getWrong(sub) {
@@ -76,7 +133,23 @@
     stopTimer();                       // 离开模考务必停表
     $("wrong1").textContent = "错题 " + getWrong("1").length;
     $("wrong4").textContent = "错题 " + getWrong("4").length;
+    refreshHomeProgress();
     show("home");
+  }
+  /* 首页按钮副标题：若有可续练的进度，提示「继续 · 第 X 题」 */
+  function refreshHomeProgress() {
+    [["practice", "全 500 题 · 逐题解析"], ["exam", "抽 100 题 · 限时 100 分钟"]].forEach(function (pair) {
+      var mode = pair[0], fresh = pair[1];
+      document.querySelectorAll('.act-btn[data-mode="' + mode + '"]').forEach(function (b) {
+        var sub = b.dataset.sub;
+        var s = b.querySelector(".act-s");
+        if (!s) return;
+        var saved = loadProgress(sub, mode);
+        s.textContent = (saved && isResumable(saved))
+          ? ("继续 · 第 " + (saved.idx + 1) + " 题")
+          : fresh;
+      });
+    });
   }
 
   /* ---------- 开始 ---------- */
@@ -84,9 +157,18 @@
 
   function startPractice(sub) {
     S.sub = sub; S.mode = "practice";
-    S.list = DATA[sub].slice();
-    resetRun();
-    $("quizTitle").textContent = subName(sub);
+    var saved = loadProgress(sub, "practice");
+    if (saved && isResumable(saved)) {
+      applyProgress(saved);
+      S.resumed = true;
+      $("quizTitle").textContent = subName(sub) + " · 继续练习（第 " + (S.idx + 1) + " 题）";
+    } else {
+      clearProgress(sub, "practice");
+      S.list = DATA[sub].slice();
+      resetRun();
+      S.resumed = false;
+      $("quizTitle").textContent = subName(sub);
+    }
     $("qTotal").textContent = S.list.length;
     show("quiz"); render();
   }
@@ -94,22 +176,36 @@
   /* 随机模考：每次进入从本学科题库纯随机抽 EXAM_N 题（并保证与上一次不重复） */
   function startExam(sub) {
     S.sub = sub; S.mode = "exam";
-    var pool = DATA[sub].slice();
-    var n = Math.min(EXAM_N, pool.length);
-    var picked = shuffle(pool).slice(0, n);
-    var key = idsKey(picked);
-    try {
-      var lastKey = "jk_last_exam_" + sub;
-      if (localStorage.getItem(lastKey) === key) {      // 极小概率完全相同 → 重抽一次
-        picked = shuffle(pool).slice(0, n);
-        key = idsKey(picked);
-      }
-      localStorage.setItem(lastKey, key);
-    } catch (e) { /* 隐私模式等忽略 */ }
-    S.list = picked;
-    resetRun();
-    startTimer();     // 模考限时 100 分钟，时间到自动交卷
-    $("quizTitle").textContent = subName(sub) + " · 随机模考";
+    var saved = loadProgress(sub, "exam");
+    if (saved && isResumable(saved)) {
+      applyProgress(saved);          // 恢复同一套题 + 已答状态 + 截止时间戳
+      S.resumed = true;
+      stopTimer();
+      S.timeUp = false;
+      tickTimer();                   // 按剩余时间刷新；若离开太久已超时 → 自动交卷
+      if (S.timeUp) return;          // 已因超时进入结束页，不再进答题页
+      S.timerId = setInterval(tickTimer, 250);
+      $("quizTitle").textContent = subName(sub) + " · 随机模考（继续 · 第 " + (S.idx + 1) + " 题）";
+    } else {
+      clearProgress(sub, "exam");
+      var pool = DATA[sub].slice();
+      var n = Math.min(EXAM_N, pool.length);
+      var picked = shuffle(pool).slice(0, n);
+      var key = idsKey(picked);
+      try {
+        var lastKey = "jk_last_exam_" + sub;
+        if (localStorage.getItem(lastKey) === key) {      // 极小概率完全相同 → 重抽一次
+          picked = shuffle(pool).slice(0, n);
+          key = idsKey(picked);
+        }
+        localStorage.setItem(lastKey, key);
+      } catch (e) { /* 隐私模式等忽略 */ }
+      S.list = picked;
+      resetRun();
+      S.resumed = false;
+      startTimer();     // 模考限时 100 分钟，时间到自动交卷
+      $("quizTitle").textContent = subName(sub) + " · 随机模考";
+    }
     $("qTotal").textContent = S.list.length;
     show("quiz"); render();
   }
@@ -118,9 +214,18 @@
     var ids = getWrong(sub);
     if (!ids.length) { alert("这一科暂时没有错题，去练练题吧～"); return; }
     S.sub = sub; S.mode = "review";
-    S.list = DATA[sub].filter(function (q) { return ids.indexOf(q.id) >= 0; });
-    resetRun();
-    $("quizTitle").textContent = subName(sub) + " · 错题复习";
+    var saved = loadProgress(sub, "review");
+    if (saved && isResumable(saved) && saved.list.length) {
+      applyProgress(saved);
+      S.resumed = true;
+      $("quizTitle").textContent = subName(sub) + " · 错题复习（继续 · 第 " + (S.idx + 1) + " 题）";
+    } else {
+      clearProgress(sub, "review");
+      S.list = DATA[sub].filter(function (q) { return ids.indexOf(q.id) >= 0; });
+      resetRun();
+      S.resumed = false;
+      $("quizTitle").textContent = subName(sub) + " · 错题复习";
+    }
     $("qTotal").textContent = S.list.length;
     show("quiz"); render();
   }
@@ -129,6 +234,7 @@
     S.idx = 0; S.selected = {}; S.answered = {}; S.correct = 0; S.wrong = 0;
     S.justAnswered = false;
     S.timeUp = false;
+    S.resumed = false;
   }
 
   /* ---------- 模考倒计时（100 分钟） ----------
@@ -264,6 +370,11 @@
 
     // 模考计分条
     renderScoreBar();
+
+    // 续练：实时保存进度 + 续练时才显示「重头」按钮
+    saveProgress();
+    var rq = $("btnRestartQuiz");
+    if (rq) rq.classList.toggle("hidden", !S.resumed);
   }
 
   function renderScoreBar() {
@@ -331,6 +442,7 @@
   /* ---------- 结束页 ---------- */
   function endScreen() {
     stopTimer();                       // 结束即停表（正常做完 / 时间到 都会走这里）
+    clearProgress(S.sub, S.mode);      // 本轮已完成 → 清掉续练进度，下次从新开始
     var total = S.list.length;
     var rate = total ? Math.round(S.correct / total * 100) : 0;
     var ring = document.querySelector(".score-ring");
@@ -401,12 +513,20 @@
       else startPractice(b.dataset.sub);
     };
   });
-  $("btnBack").onclick = function () { if (confirm("返回首页？当前进度不保留")) renderHome(); };
-  $("btnQuit").onclick = function () { if (confirm("退出？当前进度不保留")) renderHome(); };
+  $("btnBack").onclick = function () { if (confirm("返回首页？进度已自动保存，下次可继续")) renderHome(); };
+  $("btnQuit").onclick = function () { if (confirm("退出？进度已自动保存，下次可继续")) renderHome(); };
+  $("btnRestartQuiz").onclick = function () {
+    if (!confirm("从头开始？当前进度将清空")) return;
+    clearProgress(S.sub, S.mode);
+    if (S.mode === "exam") startExam(S.sub);        // 模考：重抽一套新的
+    else if (S.mode === "review") startReview(S.sub);
+    else startPractice(S.sub);
+  };
   $("btnPrev").onclick = prev;
   $("btnNext").onclick = next;
   $("btnReview").onclick = function () { startReview(S.sub); };
   $("btnRestart").onclick = function () {
+    clearProgress(S.sub, S.mode);                   // 重新答题 = 放弃上次进度，从新开始
     if (S.mode === "exam") startExam(S.sub);        // 模考：再随机抽一套新的
     else if (S.mode === "review") startReview(S.sub);
     else startPractice(S.sub);
