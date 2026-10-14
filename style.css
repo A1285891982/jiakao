@@ -222,3 +222,18 @@ body {
 .bank-card .act-btn.bank-btn .act-t { color: var(--green-d); }
 .bank-card .act-btn.bank-btn::after { content: "›"; float: right; font-size: 18px;
   font-weight: 800; color: var(--green); line-height: 1.1; }
+
+/* 口诀速记入口（大卡片，琥珀色系） */
+.memo-card {
+  display: block; background: var(--card);
+  border-radius: var(--radius); padding: 18px 16px; box-shadow: var(--shadow);
+  text-decoration: none; color: var(--txt); transition: transform .1s ease;
+}
+.memo-card:active { transform: scale(.99); }
+.memo-card, .memo-card :where(a, span, div) { text-decoration: none; }
+.memo-card .subj-ico.memo { background: linear-gradient(135deg, #d97706, #f5b041); font-size: 24px; }
+.memo-card .subj-name { color: #b45309; }
+.memo-card .act-btn.memo-btn { cursor: pointer; }
+.memo-card .act-btn.memo-btn .act-t { color: #b45309; }
+.memo-card .act-btn.memo-btn::after { content: "›"; float: right; font-size: 18px;
+  font-weight: 800; color: #d97706; line-height: 1.1; }
