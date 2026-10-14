@@ -260,6 +260,7 @@ function renderQuiz(){
     <div class="q">${esc(q.question)}</div>${img}
     <div class="opts">${opts}</div>${confirm}${ans}
   </div>`;
+  holder.querySelectorAll('img.pic').forEach(im=>{im.style.display='block';});
 
   // 交互
   if(!done){
