@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>驾考通 · 公开题库（4369 题）</title>
+<meta name="description" content="科目一 + 科目四 共 4369 道驾考理论题，含答案、解析与技巧，可检索浏览。" />
+<style>
+  :root{
+    --green:#14a44d; --green-d:#0e7a39; --bg:#f4f7f5; --card:#fff;
+    --ink:#1f2a24; --sub:#6b7a72; --line:#e6ece8; --red:#e5484d; --amber:#d97706;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
+    padding:14px 16px calc(14px + env(safe-area-inset-top));padding-top:calc(14px + env(safe-area-inset-top))}
+  header h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.5px}
+  header p{margin:4px 0 0;font-size:12.5px;opacity:.9}
+  .wrap{max-width:760px;margin:0 auto;padding:14px 14px 80px}
+  .bar{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:9;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{border:0;background:#fff;padding:8px 14px;font-size:14px;color:var(--sub);cursor:pointer}
+  .seg button.on{background:var(--green);color:#fff;font-weight:700}
+  select,input{font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  input[type=search]{flex:1;min-width:140px}
+  .cnt{font-size:12.5px;color:var(--sub);margin-left:auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;margin-bottom:12px;
+    box-shadow:0 1px 3px rgba(20,40,30,.05)}
+  .ctop{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .num{font-weight:800;color:var(--green-d);font-size:15px}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .b-judge{background:#fff3e0;color:var(--amber)}
+  .b-single{background:#e6f4ec;color:var(--green-d)}
+  .b-multi{background:#eadcff;color:#6d28d9}
+  .b-img{background:#eef2f7;color:#3b6fb0}
+  .q{font-size:15.5px;line-height:1.55;font-weight:600;margin:2px 0 10px}
+  .pic{width:100%;max-height:240px;object-fit:contain;background:#f0f3f1;border-radius:10px;margin-bottom:10px;display:none}
+  .opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:7px 0;cursor:pointer;font-size:15px;transition:.15s}
+  .opt:hover{border-color:var(--green)}
+  .opt .k{flex:0 0 24px;height:24px;border-radius:50%;background:#eef2f0;color:var(--sub);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .opt .t{flex:1;line-height:1.5}
+  .opt.ok{background:#e8f7ee;border-color:var(--green)}
+  .opt.ok .k{background:var(--green);color:#fff}
+  .opt.no{background:#fdecec;border-color:var(--red)}
+  .opt.no .k{background:var(--red);color:#fff}
+  .opt.dim{opacity:.5}
+  .ans{font-size:14px;margin-top:8px;display:none}
+  .ans.show{display:block}
+  .ans .lab{font-weight:700;color:var(--green-d)}
+  .ans .expl{margin-top:4px;color:#37443d;line-height:1.6;font-size:14px}
+  .ans .skill{margin-top:6px;background:#fff8e8;border-left:3px solid var(--amber);padding:6px 10px;border-radius:6px;font-size:13.5px;color:#6b4e10}
+  .pg{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:6px}
+  .pg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-size:14px;cursor:pointer;color:var(--ink)}
+  .pg button:disabled{opacity:.4;cursor:default}
+  .pg span{font-size:13px;color:var(--sub)}
+  .back{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:20;
+    background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:13px;color:var(--green-d);
+    text-decoration:none;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .empty{text-align:center;color:var(--sub);padding:40px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 驾考通 · 公开题库</h1>
+  <p>科目一 + 科目四 共 <b id="total">4369</b> 道题 · 含答案 / 解析 / 技巧 · 可检索浏览</p>
+</header>
+<div class="wrap">
+  <div class="bar">
+    <div class="seg" id="subSeg">
+      <button data-sub="1" class="on">科目一</button>
+      <button data-sub="4">科目四</button>
+    </div>
+    <select id="typeSel">
+      <option value="">全部题型</option>
+      <option value="判断">判断题</option>
+      <option value="单选">单选题</option>
+      <option value="多选">多选题</option>
+    </select>
+    <input id="search" type="search" placeholder="搜索题干关键词…" />
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="list"></div>
+  <div class="pg">
+    <button id="prev">‹ 上一页</button>
+    <span id="pgInfo"></span>
+    <button id="next">下一页 ›</button>
+  </div>
+</div>
+<a class="back" href="../">← 回到刷题</a>
+
+<script>
+const PAGE=12, DATA_VER=1;
+const files={1:"ke1.json",4:"ke4.json"};
+let bank={}, cache={}, subj='1', type='', kw='', page=0, filtered=[];
+
+async function load(sub){
+  if(cache[sub]) return cache[sub];
+  const url=files[sub]+"?v="+DATA_VER;
+  const r=await fetch(url,{cache:"no-store"});
+  const j=await r.json();
+  cache[sub]=j.questions; bank[sub]=j;
+  return cache[sub];
+}
+function applyFilter(){
+  const all=cache[subj]||[];
+  filtered=all.filter(q=>{
+    if(type && q.type!==type) return false;
+    if(kw && !q.question.includes(kw) && !(q.explanation||'').includes(kw)) return false;
+    return true;
+  });
+  page=0; render();
+}
+function optHTML(q){
+  const correct=String(q.answer).split('');
+  const multi=correct.length>1;
+  return q.options.map(o=>{
+    const isC=correct.includes(o.key);
+    return `<div class="opt" data-k="${o.key}" data-c="${isC?1:0}">
+      <div class="k">${o.key}</div><div class="t">${esc(o.text)}</div></div>`;
+  }).join('');
+}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function card(q){
+  const cls=q.type==='判断'?'b-judge':q.type==='多选'?'b-multi':'b-single';
+  const img=q.hasImage?`<img class="pic" data-src="${esc(q.imageUrl)}" alt="题图" onerror="this.style.display='none'">`:'';
+  return `<div class="card">
+    <div class="ctop">
+      <span class="num">#${q.num}</span>
+      <span class="badge ${cls}">${q.type}</span>
+      ${q.hasImage?'<span class="badge b-img">图</span>':''}
+      ${q.errorRate?'<span class="badge b-judge">易错 '+q.errorRate+'%</span>':''}
+    </div>
+    <div class="q">${esc(q.question)}</div>
+    ${img}
+    <div class="opts">${optHTML(q)}</div>
+    <div class="ans">
+      <div><span class="lab">正确答案：</span>${q.answer.split('').join('、')}</div>
+      <div class="expl">${esc(q.explanation||'（无解析）')}</div>
+      ${q.skill?`<div class="skill">💡 技巧：${esc(q.skill)}</div>`:''}
+    </div>
+  </div>`;
+}
+function render(){
+  const list=document.getElementById('list');
+  if(!filtered.length){list.innerHTML='<div class="empty">没有匹配的题目</div>';document.getElementById('pgInfo').textContent='';return;}
+  const start=page*PAGE, slice=filtered.slice(start,start+PAGE);
+  list.innerHTML=slice.map(card).join('');
+  // 懒加载图片
+  list.querySelectorAll('img.pic').forEach(im=>{im.src=im.dataset.src;im.style.display='block';});
+  // 选项交互
+  list.querySelectorAll('.card').forEach((c,i)=>{
+    const ans=c.querySelector('.ans');
+    c.querySelectorAll('.opt').forEach(op=>{
+      op.onclick=()=>{
+        if(c.dataset.done) return;
+        const k=op.dataset.k, isC=op.dataset.c==='1';
+        op.classList.add(isC?'ok':'no');
+        if(!isC) c.querySelectorAll('.opt').forEach(o=>{if(o.dataset.c==='1')o.classList.add('ok');});
+        c.querySelectorAll('.opt').forEach(o=>o.classList.add('dim'));
+        ans.classList.add('show'); c.dataset.done='1';
+      };
+    });
+  });
+  const totalP=Math.ceil(filtered.length/PAGE);
+  document.getElementById('pgInfo').textContent=`第 ${page+1}/${totalP} 页`;
+  document.getElementById('prev').disabled=page===0;
+  document.getElementById('next').disabled=page>=totalP-1;
+  document.getElementById('cnt').textContent=`共 ${filtered.length} 题`;
+  window.scrollTo({top:document.querySelector('.bar').offsetTop-60,behavior:'smooth'});
+}
+document.getElementById('subSeg').onclick=e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); subj=b.dataset.sub; load(subj).then(applyFilter);
+};
+document.getElementById('typeSel').onchange=e=>{type=e.target.value;applyFilter();};
+let t;document.getElementById('search').oninput=e=>{clearTimeout(t);t=setTimeout(()=>{kw=e.target.value.trim();applyFilter();},250);};
+document.getElementById('prev').onclick=()=>{if(page>0){page--;render();}};
+document.getElementById('next').onclick=()=>{page++;render();};
+document.getElementById('total').textContent=(bank['1']?bank['1'].meta.total:2540)+(bank['4']?bank['4'].meta.total:1829);
+load('1').then(()=>{
+  if(bank['1']) document.getElementById('total').textContent=bank['1'].meta.total;
+  applyFilter();
+});
+</script>
+</body>
+</html>
