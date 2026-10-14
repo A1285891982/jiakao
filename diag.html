@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>驾考通 · 缓存诊断</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    margin: 0; padding: 14px; background: #f2f4f8; color: #1b1f24; }
+  h1 { font-size: 18px; margin: 6px 0 12px; }
+  .card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 4px 16px rgba(20,30,60,.08); margin-bottom: 12px; }
+  .row { font-size: 13px; line-height: 1.6; padding: 5px 0; border-bottom: 1px dashed #eceff4; }
+  .row:last-child { border-bottom: none; }
+  .k { color: #6b7280; }
+  .v { font-weight: 600; word-break: break-all; }
+  .ok { color: #0f9d58; }
+  .bad { color: #e5484d; }
+  .warn { color: #d97706; }
+  pre { font-size: 12px; background: #0f172a; color: #d7e3f4; padding: 10px; border-radius: 10px;
+    overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+  .tip { font-size: 12px; color: #6b7280; line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1>驾考通 · 缓存诊断</h1>
+<div class="card" id="card"><div class="row"><span class="k">检测中…</span></div></div>
+<div class="card">
+  <div class="tip">请把这一页**整屏截图**发给我（包含下面黑框里的内容）。</div>
+</div>
+<div class="card">
+  <div class="k" style="font-size:12px;margin-bottom:6px;">原始结果</div>
+  <pre id="raw">…</pre>
+</div>
+<script>
+var rows = [], raws = [];
+function add(k, v, cls) {
+  rows.push('<div class="row"><span class="k">' + k + '</span>：<span class="v ' + (cls || '') + '">' + v + '</span></div>');
+  document.getElementById('card').innerHTML = rows.join('');
+}
+function raw(s) { raws.push(s); document.getElementById('raw').textContent = raws.join('\n'); }
+
+async function probe(label, url, opts) {
+  try {
+    var res = await fetch(url, opts);
+    var txt = await res.text();
+    var ver = txt.indexOf('精选 500 题') >= 0 ? '★ 新版(精选500题)'
+            : (txt.indexOf('全 500 题') >= 0 ? '⚠ 旧版(全500题)' : '? 认不出');
+    add('fetch ' + label, res.status + ' · ' + ver + ' · ' + txt.length + 'B', ver.indexOf('★') >= 0 ? 'ok' : 'bad');
+    return txt;
+  } catch (e) {
+    add('fetch ' + label, 'ERR ' + e.message, 'bad');
+    return '';
+  }
+}
+
+(async function () {
+  add('时间', new Date().toLocaleString());
+  add('浏览器', navigator.userAgent);
+  add('是否 HTTPS', location.protocol === 'https:' ? '是' : '否(' + location.protocol + ')');
+
+  // Service Worker 状态
+  if ('serviceWorker' in navigator) {
+    add('支持 SW', '是', 'ok');
+    add('当前页被 SW 控制', navigator.serviceWorker.controller ? '是' : '否', navigator.serviceWorker.controller ? 'ok' : 'warn');
+    if (navigator.serviceWorker.controller) add('控制器脚本', navigator.serviceWorker.controller.scriptURL);
+    try {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      add('SW 注册数', regs.length);
+      for (var i = 0; i < regs.length; i++) {
+        var r = regs[i];
+        add('注册#' + (i + 1) + ' 脚本', r.active ? r.active.scriptURL : '(无 active)');
+        add('注册#' + (i + 1) + ' 状态', r.active ? r.active.state : '-');
+        add('注册#' + (i + 1) + ' 有等待中版本', (r.waiting || r.installing) ? '是' : '否');
+      }
+    } catch (e) { add('列注册失败', e.message, 'bad'); }
+    try {
+      var keys = await caches.keys();
+      add('CacheStorage 里的缓存名', keys.length ? keys.join(', ') : '(空)', keys.length ? '' : 'warn');
+    } catch (e) { add('列缓存失败', e.message, 'bad'); }
+  } else {
+    add('支持 SW', '不支持（所以没有离线能力）', 'warn');
+  }
+
+  // 三种取法对比 —— 判断到底卡在哪一层
+  var t = Date.now();
+  var a = await probe('默认(无参数)', 'index.html', undefined);
+  var b = await probe('no-store', 'index.html?probe=' + t, { cache: 'no-store' });
+  var c = await probe('no-cache', 'index.html?probe=' + t, { cache: 'no-cache' });
+
+  // ★ 关键：直接打开缓存仓库看里面存的到底是哪一版
+  try {
+    var keys2 = await caches.keys();
+    for (var j = 0; j < keys2.length; j++) {
+      var c2 = await caches.open(keys2[j]);
+      var reqs = await c2.keys();
+      var home = reqs.filter(function (r) {
+        return /\/jiakao\/(index\.html)?$/.test(new URL(r.url).pathname) && new URL(r.url).search === '';
+      });
+      if (!home.length) { add('缓存 ' + keys2[j], '共 ' + reqs.length + ' 项，没存首页'); continue; }
+      var hit = await c2.match(home[0]);
+      var txt = hit ? await hit.text() : '';
+      var v = txt.indexOf('精选 500 题') >= 0 ? '★ 新版' : (txt.indexOf('全 500 题') >= 0 ? '⚠ 旧版' : '? 认不出');
+      add('缓存 ' + keys2[j] + ' 里的首页', v + '（' + reqs.length + ' 项）', v.indexOf('★') >= 0 ? 'ok' : 'bad');
+    }
+  } catch (e) { add('查缓存内容失败', e.message, 'warn'); }
+
+  // 从拿到的 HTML 里读出按钮文案（不用手点首页）
+  try {
+    var doc = new DOMParser().parseFromString(b || a || c, 'text/html');
+    var subs = Array.prototype.map.call(doc.querySelectorAll('.act-s'), function (e) { return e.textContent; });
+    add('线上 HTML 里的按钮副标题', subs.join(' ｜ ') || '(没解析到)', subs.join('｜').indexOf('精选') >= 0 ? 'ok' : 'bad');
+  } catch (e) { add('解析 HTML 失败', e.message, 'warn'); }
+
+  add('结论提示', '若三项 fetch 都是"新版"，但你手机主页还是旧版 → 是页面本身的缓存；若某项是旧版 → 就是那一层缓存在捣乱');
+})();
+</script>
+</body>
+</html>
