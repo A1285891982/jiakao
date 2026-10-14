@@ -210,11 +210,12 @@ body {
 
 /* 公开全量题库入口（大卡片，与科一/科四同规格，置顶） */
 .bank-card {
-  display: block; background: linear-gradient(135deg, #ffffff, #f0faf4);
+  display: block; background: var(--card);
   border-radius: var(--radius); padding: 18px 16px; box-shadow: var(--shadow);
   text-decoration: none; color: var(--txt); transition: transform .1s ease;
 }
 .bank-card:active { transform: scale(.99); }
+.bank-card, .bank-card :where(a, span, div) { text-decoration: none; }
 .bank-card .subj-ico.bank { background: linear-gradient(135deg, #0f9d58, #3cc974); font-size: 24px; }
 .bank-card .subj-name { color: var(--green-d); }
 .bank-card .act-btn.bank-btn { cursor: pointer; }
