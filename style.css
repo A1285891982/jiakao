@@ -10,6 +10,8 @@
   --err: #e5484d;
   --err-bg: #fdecec;
   --line: #e6e9ef;
+  --green: #0f9d58;
+  --green-d: #0b7a43;
   --radius: 16px;
   --shadow: 0 6px 22px rgba(20, 30, 60, .08);
 }
@@ -206,15 +208,16 @@ body {
   .score-bar .sb-meta { gap: 8px; font-size: 11.5px; }
 }
 
-/* 公开全量题库入口卡片 */
-.bank-entry { display: flex; align-items: center; gap: 12px; margin: 14px 2px 4px;
-  padding: 13px 14px; background: linear-gradient(135deg,#fff,#f3fbf6);
-  border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: var(--ink);
-  box-shadow: 0 1px 3px rgba(20,40,30,.05); }
-.bank-entry:active { transform: scale(.99); }
-.bank-entry .be-ico { flex: 0 0 40px; height: 40px; border-radius: 12px; background: var(--green);
-  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.bank-entry .be-txt { flex: 1; }
-.bank-entry .be-t { font-weight: 800; font-size: 15px; color: var(--green-d); }
-.bank-entry .be-s { font-size: 12px; color: var(--sub); margin-top: 2px; line-height: 1.4; }
-.bank-entry .be-arrow { font-size: 24px; color: var(--green); font-weight: 800; }
+/* 公开全量题库入口（大卡片，与科一/科四同规格，置顶） */
+.bank-card {
+  display: block; background: linear-gradient(135deg, #ffffff, #f0faf4);
+  border-radius: var(--radius); padding: 18px 16px; box-shadow: var(--shadow);
+  text-decoration: none; color: var(--txt); transition: transform .1s ease;
+}
+.bank-card:active { transform: scale(.99); }
+.bank-card .subj-ico.bank { background: linear-gradient(135deg, #0f9d58, #3cc974); font-size: 24px; }
+.bank-card .subj-name { color: var(--green-d); }
+.bank-card .act-btn.bank-btn { cursor: pointer; }
+.bank-card .act-btn.bank-btn .act-t { color: var(--green-d); }
+.bank-card .act-btn.bank-btn::after { content: "›"; float: right; font-size: 18px;
+  font-weight: 800; color: var(--green); line-height: 1.1; }
