@@ -1,8 +1,8 @@
 /* 驾考通 PWA Service Worker —— 自动生成，请勿手改（改 build_sw.py） */
 /* 作用：把题目和全部题图缓存到手机本地，之后断网也能刷题；
         iPhone「添加到主屏幕」后即为可离线使用的独立 App。 */
-const CACHE = 'jk-fd914a97';
-const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png'];
+const CACHE = 'jk-331dcdc5';
+const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png', './question-bank/index.html'];
 const IMAGES = [
   './img/ke1/004.jpg',
   './img/ke1/006.jpg',
@@ -354,22 +354,25 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  /* 导航请求（打开 App 本身）：缓存优先。
-     这条最关键 —— 云端链接只有 3 小时时效，过期后服务器会返回 401。
-     所以这里绝不把 401/错误页交给用户，一律用缓存的首页兜底，
-     保证「添加到主屏幕」之后即使链接失效也能正常打开。 */
+  /* 导航请求（打开页面）：网络优先 —— 在线时永远拿最新页面（修复旧版
+     「一切导航都映射回主站首页」导致子页面打不开/刷新不到新版的问题）。
+     离线或网络失败时按原路径回退缓存；仅主站首页路径才用 index.html 兜底。 */
   if (req.mode === 'navigate') {
     e.respondWith(
-      caches.match('./index.html').then(function (cached) {
-        var fromNet = fetch(req).then(function (res) {
-          if (res && res.ok && res.type === 'basic') {
-            var cp = res.clone();
-            caches.open(CACHE).then(function (c) { c.put('./index.html', cp); });
-          }
-          return res;
-        }).catch(function () { return null; });
-        // 有缓存立刻用（秒开、可离线）；没有则等网络，网络也不行就再兜一次缓存
-        return cached || fromNet.then(function (r) { return r || caches.match('./index.html'); });
+      fetch(req).then(function (res) {
+        if (res && res.ok && res.type === 'basic') {
+          var cp = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(req, cp); });
+        }
+        return res;
+      }).catch(function () {
+        return caches.match(req, { ignoreSearch: true }).then(function (hit) {
+          if (hit) return hit;
+          // 仅当请求路径落在主站作用域根（无子路径）时才用首页兜底
+          var path = url.pathname.replace(/\/+$/, '');
+          var root = location.pathname.replace(/[^/]*$/, '').replace(/\/+$/, '');
+          return path === root || path === '' ? caches.match('./index.html') : Response.error();
+        });
       })
     );
     return;
