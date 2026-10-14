@@ -1,7 +1,7 @@
 /* 驾考通 PWA Service Worker —— 自动生成，请勿手改（改 build_sw.py） */
 /* 作用：把题目和全部题图缓存到手机本地，之后断网也能刷题；
         iPhone「添加到主屏幕」后即为可离线使用的独立 App。 */
-const CACHE = 'jk-39f39251';
+const CACHE = 'jk-a1e2cb67';
 const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png', './question-bank/index.html'];
 const IMAGES = [
   './img/ke1/004.jpg',
@@ -324,14 +324,13 @@ function precacheAll(cache, urls, batch) {
 }
 
 self.addEventListener('install', function (e) {
+  /* 只预缓存核心文件就立刻 skipWaiting —— 新版本秒级接管。
+     294 张题图不阻塞安装（否则安装要几十秒，期间旧版还在管页面，
+     用户会看到「强刷是新的、普通刷新又变回旧的」）。 */
   e.waitUntil(
     caches.open(CACHE).then(function (c) {
-      // 第一步：核心文件必须成功，保证 SW 能正常激活
-      return c.addAll(CORE).then(function () {
-        // 第二步：尽量把全部题图也缓存下来（单张失败不影响整体）
-        return precacheAll(c, IMAGES, 8);
-      });
-    }).then(function () { return self.skipWaiting(); })
+      return c.addAll(CORE).then(function () { return self.skipWaiting(); });
+    })
   );
 });
 
@@ -339,7 +338,10 @@ self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
-    }).then(function () { return self.clients.claim(); })
+    }).then(function () { return self.clients.claim(); }).then(function () {
+      // 接管之后再后台补缓存题图：即使中途被杀，漏掉的图也会走 fetch 兜底联网补上
+      return caches.open(CACHE).then(function (c) { return precacheAll(c, IMAGES, 8); });
+    })
   );
 });
 
