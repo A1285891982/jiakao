@@ -549,8 +549,20 @@
         ② iPhone「添加到主屏幕」后以独立 App 全屏运行
    失败也不影响正常使用，只是没有离线能力。 */
 if ("serviceWorker" in navigator) {
+  // 记录进入页面时是否已有旧 SW 在控制：只有「旧换新」才自动刷新，首次安装不刷新
+  var hadController = !!navigator.serviceWorker.controller;
+  var swReloaded = false;
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () { /* 静默忽略 */ });
+    navigator.serviceWorker.register("sw.js").then(function (reg) {
+      // 主动检查更新，别等浏览器 24 小时才查一次
+      reg.update().catch(function () { /* 忽略 */ });
+    }).catch(function () { /* 静默忽略 */ });
+    // 新版本接管控制权后，自动刷新一次让新页面立即生效（避免「刷新了还是旧版」）
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!hadController || swReloaded) return;
+      swReloaded = true;
+      location.reload();
+    });
   });
 }
 

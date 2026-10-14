@@ -1,7 +1,7 @@
 /* 驾考通 PWA Service Worker —— 自动生成，请勿手改（改 build_sw.py） */
 /* 作用：把题目和全部题图缓存到手机本地，之后断网也能刷题；
         iPhone「添加到主屏幕」后即为可离线使用的独立 App。 */
-const CACHE = 'jk-ddac86b3';
+const CACHE = 'jk-39f39251';
 const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png', './question-bank/index.html'];
 const IMAGES = [
   './img/ke1/004.jpg',
@@ -356,10 +356,12 @@ self.addEventListener('fetch', function (e) {
 
   /* 导航请求（打开页面）：网络优先 —— 在线时永远拿最新页面（修复旧版
      「一切导航都映射回主站首页」导致子页面打不开/刷新不到新版的问题）。
+     注意必须带 cache:'no-cache'：GitHub Pages 给 HTML 发的是 max-age=600，
+     不带这个参数时浏览器会直接吃 10 分钟的 HTTP 缓存，导致「刷新了还是旧版」。
      离线或网络失败时按原路径回退缓存；仅主站首页路径才用 index.html 兜底。 */
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).then(function (res) {
+      fetch(req, { cache: 'no-cache' }).then(function (res) {
         if (res && res.ok && res.type === 'basic') {
           var cp = res.clone();
           caches.open(CACHE).then(function (c) { c.put(req, cp); });
