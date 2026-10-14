@@ -136,18 +136,20 @@
     refreshHomeProgress();
     show("home");
   }
-  /* 首页按钮副标题：若有可续练的进度，提示「继续 · 第 X 题」 */
+  /* 首页按钮副标题：若有可续练的进度，提示「继续 · 第 X 题」。
+     默认文案以 index.html 为唯一来源（首次运行时记录到 data-fresh），
+     这里不再写死文案 —— 否则改 HTML 永远不生效（踩过的坑）。 */
   function refreshHomeProgress() {
-    [["practice", "全 500 题 · 逐题解析"], ["exam", "抽 100 题 · 限时 100 分钟"]].forEach(function (pair) {
-      var mode = pair[0], fresh = pair[1];
+    ["practice", "exam"].forEach(function (mode) {
       document.querySelectorAll('.act-btn[data-mode="' + mode + '"]').forEach(function (b) {
         var sub = b.dataset.sub;
         var s = b.querySelector(".act-s");
         if (!s) return;
+        if (!b.dataset.fresh) b.dataset.fresh = s.textContent;
         var saved = loadProgress(sub, mode);
         s.textContent = (saved && isResumable(saved))
           ? ("继续 · 第 " + (saved.idx + 1) + " 题")
-          : fresh;
+          : b.dataset.fresh;
       });
     });
   }
