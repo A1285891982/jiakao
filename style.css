@@ -237,3 +237,18 @@ body {
 .memo-card .act-btn.memo-btn .act-t { color: #b45309; }
 .memo-card .act-btn.memo-btn::after { content: "›"; float: right; font-size: 18px;
   font-weight: 800; color: #d97706; line-height: 1.1; }
+
+/* 精选答案速查卡片（复用 memo-card 结构，绿色系） */
+.ans-card {
+  display: block; background: var(--card);
+  border-radius: var(--radius); padding: 18px 16px; box-shadow: var(--shadow);
+  text-decoration: none; color: var(--txt); transition: transform .1s ease;
+}
+.ans-card:active { transform: scale(.99); }
+.ans-card, .ans-card :where(a, span, div) { text-decoration: none; }
+.ans-card .subj-ico.ans { background: linear-gradient(135deg, #0f9d58, #3cc974); font-size: 24px; }
+.ans-card .subj-name { color: #0b7a43; }
+.ans-card .act-btn.ans-btn { cursor: pointer; }
+.ans-card .act-btn.ans-btn .act-t { color: #0b7a43; }
+.ans-card .act-btn.ans-btn::after { content: "›"; float: right; font-size: 18px;
+  font-weight: 800; color: #0f9d58; line-height: 1.1; }
