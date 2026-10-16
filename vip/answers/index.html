@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>精选 500 题 · 答案速查</title>
+  <meta name="description" content="科目一 + 科目四 各 500 道精选题，直接公开答案与解析，无答题功能，适合快速浏览与对照。" />
+  <style>
+    :root{
+      --bg:#f2f4f8; --card:#fff; --line:#e7eaf0; --ink:#1f2430; --txt:#2b3242;
+      --sub:#6b7280; --green:#0f9d58; --green-bg:#e6f6ee; --amber:#f59e0b; --amber-bg:#fff7e6;
+      --radius:16px; --shadow:0 3px 14px rgba(20,30,60,.07);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;background:var(--bg);color:var(--txt);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    #app{max-width:640px;margin:0 auto;min-height:100vh;background:var(--bg);padding:0 0 40px}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(242,244,248,.92);
+      backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line);
+      display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
+    .back{border:none;background:var(--card);width:34px;height:34px;border-radius:50%;font-size:20px;
+      color:var(--ink);box-shadow:var(--shadow);cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center}
+    .ttl{font-size:16px;font-weight:800;color:var(--ink)}
+    .ttl small{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px}
+
+    .tabs{display:flex;gap:8px;padding:14px 16px 4px}
+    .tab{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 8px;
+      text-align:center;cursor:pointer;font-weight:700;color:var(--sub);font-size:14px}
+    .tab.on{background:var(--amber-bg);border-color:var(--amber);color:#9a6200}
+
+    .filter{display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;align-items:center}
+    .filter input,.filter select{flex:1;min-width:120px;border:1px solid var(--line);background:var(--card);
+      border-radius:10px;padding:9px 11px;font-size:13px;color:var(--txt);outline:none}
+    .chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);cursor:pointer;user-select:none}
+    .chk input{width:16px;height:16px;accent-color:var(--amber)}
+    .cnt{font-size:12px;color:var(--sub);padding:0 16px 8px}
+
+    .list{padding:6px 16px}
+    .q{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 14px 12px;margin-bottom:12px}
+    .qh{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+    .qno{font-size:12px;font-weight:800;color:#9a6200;background:var(--amber-bg);padding:2px 8px;border-radius:8px}
+    .qtype{font-size:11px;color:var(--sub);border:1px solid var(--line);padding:2px 7px;border-radius:7px}
+    .qt{font-size:15px;font-weight:700;line-height:1.5;color:var(--ink);margin:2px 0 8px}
+    .qp{width:100%;border-radius:10px;margin:2px 0 10px;display:block;background:#0001}
+    .opts{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+    .opt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--line);
+      font-size:13.5px;line-height:1.4;color:var(--txt)}
+    .opt .k{font-weight:800;flex:none;width:18px;color:var(--sub)}
+    .opt.ok{background:var(--green-bg);border-color:var(--green);color:#0a6b3c}
+    .opt.ok .k{color:var(--green)}
+    .ans{font-size:13px;color:var(--sub);margin-bottom:7px}
+    .ans b{color:var(--green);font-size:15px;font-weight:800;margin-left:4px}
+    .exp{font-size:13px;line-height:1.6;color:#3a4256;background:#f7f8fb;border-radius:10px;padding:9px 11px;
+      border-left:3px solid var(--amber)}
+    .exp.mn{background:var(--amber-bg);border-left-color:#e0890a}
+    .sentinel{height:1px}
+    .empty{text-align:center;color:var(--sub);padding:50px 20px;font-size:14px}
+    @media (prefers-color-scheme:dark){:root{--bg:#161922;--card:#1f2330;--line:#2c3140;--ink:#eef1f7;
+      --txt:#d6dbe6;--sub:#8b93a6;--green-bg:#13312a;--amber-bg:#332b16;--amber:#f0b34a;--shadow:0 3px 14px rgba(0,0,0,.35)}}
+  </style>
+  <script src="../workbuddy-cloud-sdk.js"></script>
+  <script src="../cloud-config.js"></script>
+  <script src="../gate.js"></script>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <a class="back" href="../index.html" title="返回首页">‹</a>
+    <div class="ttl">精选 500 题 · 答案速查<small>直接公开答案与解析 · 无答题功能</small></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-sub="1">科目一 · 500 题</div>
+    <div class="tab" data-sub="4">科目四 · 500 题</div>
+  </div>
+
+  <div class="filter">
+    <input id="kw" type="search" placeholder="搜题干 / 选项关键词" />
+    <select id="tp"><option value="">全部题型</option><option value="单选">单选</option><option value="多选">多选</option></select>
+    <label class="chk"><input type="checkbox" id="hasimg" />只看有图</label>
+  </div>
+  <div class="cnt" id="cnt"></div>
+
+  <div class="list" id="list"></div>
+  <div class="sentinel" id="sentinel"></div>
+  <div class="empty hidden" id="empty">没有符合条件的题目</div>
+</div>
+
+<script src="../data.js"></script>
+<script>
+(function(){
+  var DATA = window.APP_DATA || {};
+  var sub = "1";
+  var BATCH = 40;
+  var filtered = [];
+  var shown = 0;
+
+  var $kw = document.getElementById('kw');
+  var $tp = document.getElementById('tp');
+  var $has = document.getElementById('hasimg');
+  var $list = document.getElementById('list');
+  var $cnt = document.getElementById('cnt');
+  var $empty = document.getElementById('empty');
+  var $sentinel = document.getElementById('sentinel');
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+  function isMulti(q){ return String(q.answer).length > 1; }
+
+  function compute(){
+    var all = (DATA[sub]||[]).slice();
+    var kw = $kw.value.trim().toLowerCase();
+    var tp = $tp.value;
+    var hi = $has.checked;
+    filtered = all.filter(function(q){
+      if(tp && q.type!==tp) return false;
+      if(hi && !q.image) return false;
+      if(kw){
+        var hay = (q.question+' '+(q.options||[]).map(function(o){return o.text;}).join(' ')).toLowerCase();
+        if(hay.indexOf(kw)<0) return false;
+      }
+      return true;
+    });
+    shown = 0;
+    $list.innerHTML = '';
+    $empty.classList.toggle('hidden', filtered.length>0);
+    $cnt.textContent = '共 '+filtered.length+' 题';
+    renderMore();
+  }
+
+  function renderMore(){
+    var end = Math.min(shown+BATCH, filtered.length);
+    var html = '';
+    for(; shown<end; shown++){
+      var q = filtered[shown];
+      var ok = {};
+      String(q.answer).split('').forEach(function(k){ ok[k]=true; });
+      var optHtml = (q.options||[]).map(function(o){
+        var cls = ok[o.key] ? 'opt ok' : 'opt';
+        var mark = ok[o.key] ? ' ✔' : '';
+        return '<div class="'+cls+'"><span class="k">'+esc(o.key)+'</span><span>'+esc(o.text)+mark+'</span></div>';
+      }).join('');
+      var imgHtml = q.image ? '<img class="qp" loading="lazy" src="../'+esc(q.image)+'" alt="题图" />' : '';
+      var exp = q.explanation||'';
+      var isMn = exp.indexOf('📖')>=0;
+      html += '<div class="q">'
+        + '<div class="qh"><span class="qno">#'+esc(q.id)+'</span><span class="qtype">'+esc(q.type)+'</span></div>'
+        + '<div class="qt">'+esc(q.question)+'</div>'
+        + imgHtml
+        + '<div class="opts">'+optHtml+'</div>'
+        + '<div class="ans">正确答案：<b>'+esc(q.answer)+'</b></div>'
+        + '<div class="exp'+(isMn?' mn':'')+'">'+esc(exp)+'</div>'
+        + '</div>';
+    }
+    $list.insertAdjacentHTML('beforeend', html);
+  }
+
+  // 事件
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      if(t.classList.contains('on')) return;
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
+      t.classList.add('on');
+      sub = t.getAttribute('data-sub');
+      compute();
+    });
+  });
+  $kw.addEventListener('input', compute);
+  $tp.addEventListener('change', compute);
+  $has.addEventListener('change', compute);
+
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting && shown<filtered.length) renderMore(); });
+    }, {rootMargin:'400px'});
+    io.observe($sentinel);
+  }
+
+  compute();
+})();
+</script>
+</body>
+</html>

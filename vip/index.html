@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f6feb" />
+  <!-- 「添加到主屏幕」支持：iPhone/安卓都靠这几行变成独立全屏 App -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="驾考通" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="icons/apple-touch-icon-167.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon-120.png" />
+  <title>驾考通 · 精选题库</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="./workbuddy-cloud-sdk.js"></script>
+  <script src="./cloud-config.js"></script>
+  <script src="./gate.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 首页 -->
+    <section id="home" class="view">
+      <header class="home-head">
+        <h1>驾考通</h1>
+        <p class="sub">精选 500 题 · 逐题即时解析 · 错题自动留存</p>
+      </header>
+      <div class="subjects">
+        <!-- 公开全量题库入口（大卡片，置顶） -->
+        <a class="bank-card" href="question-bank/index.html">
+          <div class="subj-head">
+            <div class="subj-ico bank">📚</div>
+            <div class="subj-info">
+              <div class="subj-name">全量公开题库</div>
+              <div class="subj-meta"><span class="cnt">共 4369 题</span><span class="cnt">科一 2540 · 科四 1829</span></div>
+            </div>
+          </div>
+          <div class="subj-actions">
+            <div class="act-btn bank-btn">
+              <span class="act-t">进入题库</span><span class="act-s">完整题源 · 含答案解析 · 可检索浏览</span>
+            </div>
+          </div>
+        </a>
+
+        <div class="subj-card">
+          <div class="subj-head">
+            <div class="subj-ico">一</div>
+            <div class="subj-info">
+              <div class="subj-name">科目一</div>
+              <div class="subj-meta"><span class="cnt">共 500 题</span><span class="wrong" id="wrong1">错题 0</span></div>
+            </div>
+          </div>
+          <div class="subj-actions">
+            <button class="act-btn" data-sub="1" data-mode="practice">
+              <span class="act-t">顺序练习</span><span class="act-s">精选 500 题 · 逐题解析</span>
+            </button>
+            <button class="act-btn primary" data-sub="1" data-mode="exam">
+              <span class="act-t">随机模考</span><span class="act-s">抽 100 题 · 限时 45 分钟</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="subj-card">
+          <div class="subj-head">
+            <div class="subj-ico four">四</div>
+            <div class="subj-info">
+              <div class="subj-name">科目四</div>
+              <div class="subj-meta"><span class="cnt">共 500 题</span><span class="wrong" id="wrong4">错题 0</span></div>
+            </div>
+          </div>
+          <div class="subj-actions">
+            <button class="act-btn" data-sub="4" data-mode="practice">
+              <span class="act-t">顺序练习</span><span class="act-s">精选 500 题 · 逐题解析</span>
+            </button>
+            <button class="act-btn primary" data-sub="4" data-mode="exam">
+              <span class="act-t">随机模考</span><span class="act-s">抽 100 题 · 限时 45 分钟</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 口诀速记入口（大卡片） -->
+        <a class="memo-card" href="mnemonics/index.html">
+          <div class="subj-head">
+            <div class="subj-ico memo">📖</div>
+            <div class="subj-info">
+              <div class="subj-name">口诀速记</div>
+              <div class="subj-meta"><span class="cnt">22 条口诀</span><span class="cnt">扣分 · 速度 · 罚款 · 标志标线</span></div>
+            </div>
+          </div>
+          <div class="subj-actions">
+            <div class="act-btn memo-btn">
+              <span class="act-t">背口诀</span><span class="act-s">懒人速记 · 标志/灯光/标线带配图</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- 精选答案速查入口（大卡片） -->
+        <a class="ans-card" href="answers/index.html">
+          <div class="subj-head">
+            <div class="subj-ico ans">✅</div>
+            <div class="subj-info">
+              <div class="subj-name">精选答案速查</div>
+              <div class="subj-meta"><span class="cnt">科一 + 科四 各 500</span><span class="cnt">直接看答案 · 含解析与配图</span></div>
+            </div>
+          </div>
+          <div class="subj-actions">
+            <div class="act-btn ans-btn">
+              <span class="act-t">翻答案</span><span class="act-s">只读浏览 · 无答题 · 可搜题</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <p class="tip">
+        · <b>顺序练习</b>：按题号从第 1 题做到第 500 题，选完立即给答案与解析。<br />
+        · <b>随机模考</b>：每次进入从 500 题里<b>纯随机抽 100 题</b>（每次都不一样），底部实时计分，满分 100 分、答错 1 题扣 1 分，90 分及格。<br />
+        · <b>限时 45 分钟</b>：模考倒计时走完会自动交卷，按当时成绩计分（没做完的题不扣分）。<br />
+        · 答错的题自动进「错题本」，结束页可复习或重做。
+      </p>
+    </section>
+
+    <!-- 答题页 -->
+    <section id="quiz" class="view hidden">
+      <header class="quiz-head">
+        <button id="btnBack" class="icon-btn" title="返回首页">‹</button>
+        <div class="quiz-title" id="quizTitle">科目一</div>
+        <button id="btnRestartQuiz" class="txt-btn hidden">重头</button>
+        <button id="btnQuit" class="txt-btn">退出</button>
+      </header>
+      <div class="progress"><div class="bar" id="progBar"></div></div>
+      <div class="progress-txt"><span id="qIdx">1</span> / <span id="qTotal">500</span></div>
+
+      <div id="qcard" class="qcard"></div>
+
+      <div class="nav-bar">
+        <button id="btnPrev" class="nav-btn">上一题</button>
+        <button id="btnNext" class="nav-btn primary">下一题</button>
+      </div>
+
+      <!-- 模考计分条（仅随机模考模式显示，贴在屏幕底部） -->
+      <div id="scoreBar" class="score-bar hidden">
+        <div class="sb-time" id="sbTimeBox"><span>⏱</span><b id="sbTime">45:00</b></div>
+        <div class="sb-score"><b id="curScore">100</b><span>分</span></div>
+        <div class="sb-meta">
+          <span>已答 <b id="sbDone">0</b>/<span id="sbTotal">100</span></span>
+          <span>错 <b id="sbWrong" class="sb-err">0</b> 题</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 结束页 -->
+    <section id="end" class="view hidden">
+      <div class="end-card">
+        <div class="end-emoji" id="endEmoji">🎉</div>
+        <h2 id="endTitle">已完成</h2>
+        <div class="score-ring">
+          <div class="score-num" id="endRate">0%</div>
+          <div class="score-lbl" id="endRateLbl">正确率</div>
+        </div>
+        <div class="end-pass" id="endPass"></div>
+        <div class="end-stats">
+          <div><b id="endCorrect">0</b><span>答对</span></div>
+          <div><b id="endWrong">0</b><span>答错</span></div>
+          <div id="endUnansweredBox"><b id="endUnanswered">0</b><span>未答</span></div>
+          <div><b id="endTotal">0</b><span>总题数</span></div>
+        </div>
+        <div class="end-actions">
+          <button id="btnReview" class="big-btn ghost">复习错题 (<span id="endWrongCnt">0</span>)</button>
+          <button id="btnRestart" class="big-btn">重新答题</button>
+          <button id="btnHome" class="big-btn outline">返回首页</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

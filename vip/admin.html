@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>驾考通 · 车主管理台</title>
+<style>
+  :root{--bg:#f2f4f8;--card:#fff;--line:#e7eaf0;--ink:#1f2430;--txt:#2b3242;--sub:#6b7280;
+    --blue:#1f6feb;--green:#0f9d58;--red:#b42318;--amber:#f59e0b;--radius:14px}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--txt);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  #app{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+  .head{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+  .back{border:none;background:var(--card);width:34px;height:34px;border-radius:50%;font-size:20px;
+    color:var(--ink);box-shadow:0 3px 14px rgba(20,30,60,.07);cursor:pointer;text-decoration:none;
+    display:flex;align-items:center;justify-content:center}
+  .ttl{font-size:17px;font-weight:800;color:var(--ink)}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 3px 14px rgba(20,30,60,.07);padding:16px;margin-bottom:14px}
+  input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:14px;color:var(--txt);outline:none;background:#fff}
+  label{font-size:12px;color:var(--sub);display:block;margin:10px 0 6px}
+  button.go{width:100%;margin-top:14px;padding:12px;border:none;border-radius:12px;font-size:15px;
+    font-weight:700;background:var(--blue);color:#fff;cursor:pointer}
+  button.go:disabled{opacity:.6}
+  .msg{border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6;margin-top:12px}
+  .ok{background:#e6f6ee;color:#0a6b3c}.bad{background:#fdecec;color:#b42318}.warn{background:#fff7e6;color:#9a6200}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;word-break:break-all}
+  th{color:var(--sub);font-weight:600;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+  .p-new{background:#e6f6ee;color:#0a6b3c}.p-used{background:#fdecec;color:#b42318}.p-exp{background:#f1f3f7;color:#6b7280}
+  .copy{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--blue);font-weight:700}
+  .revoke{border:1px solid #f2c4c0;background:#fff;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--red);font-weight:700}
+  .share{display:none;margin-top:12px;background:#eef4ff;border:1px dashed #9dc0f7;border-radius:10px;padding:12px;font-size:13px;word-break:break-all}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;cursor:pointer;color:var(--sub)}
+  .tab.on{background:#eaf1ff;border-color:var(--blue);color:var(--blue)}
+  @media (prefers-color-scheme:dark){:root{--bg:#161922;--card:#1f2330;--line:#2c3140;--ink:#eef1f7;--txt:#d6dbe6;--sub:#8b93a6}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="head">
+    <a class="back" href="./index.html">‹</a>
+    <div class="ttl">车主管理台 · 邀请链接</div>
+  </div>
+
+  <!-- 未登录 -->
+  <div class="card" id="vLogin" style="display:none">
+    <div class="tabs">
+      <button class="tab on" id="tWechat">微信登录</button>
+      <button class="tab" id="tPhone">手机验证码</button>
+    </div>
+    <div id="bWechat">
+      <button class="go" id="goWechat" style="background:#07c160">微信一键登录 / 扫码</button>
+    </div>
+    <div id="bPhone" style="display:none">
+      <label>手机号</label>
+      <input id="phone" type="tel" maxlength="11" placeholder="11 位手机号" />
+      <div id="perr" style="color:var(--red);font-size:12px;margin-top:6px;min-height:14px"></div>
+      <label>验证码</label>
+      <div style="display:flex;gap:8px">
+        <input id="code" type="number" inputmode="numeric" maxlength="6" placeholder="验证码" style="flex:1;min-width:0" />
+        <button id="send" type="button" style="flex:none;width:104px;padding:11px;border:none;border-radius:10px;background:#eef2f8;color:var(--blue);font-weight:700;font-size:13px;cursor:pointer">获取验证码</button>
+      </div>
+      <button class="go" id="goPhone">登录 / 注册</button>
+    </div>
+    <div class="msg warn" id="loginMsg" style="display:none"></div>
+  </div>
+
+  <!-- 管理密码 -->
+  <div class="card" id="vPass" style="display:none">
+    <div style="font-size:14px;line-height:1.7">首次使用：输入<strong>车主管理密码</strong>，验证通过后本账号即为管理员（仅需一次）。</div>
+    <label>管理密码</label>
+    <input id="mpass" type="password" placeholder="车主管理密码" />
+    <button class="go" id="goPass">验证并成为管理员</button>
+    <div class="msg bad" id="passMsg" style="display:none"></div>
+  </div>
+
+  <!-- 管理面板 -->
+  <div id="vPanel" style="display:none">
+    <div class="card">
+      <label>备注（可选，方便你记住给谁的）</label>
+      <input id="inote" type="text" maxlength="20" placeholder="如：张三" />
+      <label>有效期（自生成时刻起）</label>
+      <select id="ihours">
+        <option value="720" selected>30 天</option>
+        <option value="1440">60 天</option>
+        <option value="2160">90 天</option>
+        <option value="4320">180 天</option>
+      </select>
+      <button class="go" id="goCreate">➕ 生成邀请链接</button>
+      <div class="share" id="shareBox"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:800;margin-bottom:8px">已生成的邀请链接</div>
+      <div style="overflow-x:auto"><table id="tb">
+        <thead><tr><th>邀请码</th><th>状态</th><th>备注</th><th>有效期至</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <div class="msg warn" id="listMsg" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script src="workbuddy-cloud-sdk.js"></script>
+<script src="cloud-config.js"></script>
+<script>
+(function(){
+  "use strict";
+  var cloud = WorkBuddyCloud.createWorkBuddyCloud({
+    endpoint: CLOUD_CONFIG.endpoint,
+    oauthRelayBaseUrl: CLOUD_CONFIG.oauthRelayBaseUrl,
+    publishableKey: CLOUD_CONFIG.publishableKey
+  });
+  var $ = function(id){ return document.getElementById(id); };
+  function msg(id, text, cls){ var el=$(id); el.style.display=text?"":"none"; el.className="msg "+(cls||"warn"); el.innerHTML=text; }
+
+  /* ---------- 登录 ---------- */
+  var pendingOtp=null, timer=null;
+  $("tWechat").onclick=function(){ $("bWechat").style.display=""; $("bPhone").style.display="none"; this.classList.add("on"); $("tPhone").classList.remove("on"); };
+  $("tPhone").onclick=function(){ $("bPhone").style.display=""; $("bWechat").style.display="none"; this.classList.add("on"); $("tWechat").classList.remove("on"); };
+
+  $("goWechat").onclick=async function(){
+    this.disabled=true; this.textContent="正在跳转…";
+    var back=new URL(location.origin+"/");
+    var res=await cloud.auth.signInWithOAuth({ provider:"wechat", redirectTo:back.toString() });
+    if(res.error){ this.disabled=false; this.textContent="微信一键登录 / 扫码"; msg("loginMsg", res.error.message||"微信登录暂不可用","bad"); return; }
+    location.assign(res.data.url);
+  };
+
+  $("phone").addEventListener("input",function(){ $("perr").textContent=""; });
+  $("send").onclick=async function(){
+    var p=$("phone").value.trim();
+    if(!/^1\d{10}$/.test(p)){ $("perr").textContent="请输入正确的 11 位手机号"; return; }
+    $("perr").textContent=""; this.disabled=true; this.textContent="发送中…";
+    var s=await cloud.auth.sendOtp({ phone:p });
+    if(s.error){ this.disabled=false; this.textContent="获取验证码"; $("perr").textContent=s.error.message||"发送失败"; return; }
+    pendingOtp={ phone:p, verificationId:s.data.verificationId, isExistingUser:s.data.isExistingUser };
+    var left=60; this.textContent=left+"s 后重发";
+    timer=setInterval(function(){ left--; if(left<=0){clearInterval(timer);$("send").disabled=false;$("send").textContent="重新获取";} else $("send").textContent=left+"s 后重发"; },1000);
+  };
+  $("goPhone").onclick=async function(){
+    var p=$("phone").value.trim();
+    if(!/^1\d{10}$/.test(p)){ $("perr").textContent="请输入正确的 11 位手机号"; return; }
+    if(!pendingOtp||pendingOtp.phone!==p){ $("perr").textContent="请先获取当前手机号的验证码"; return; }
+    if(!$("code").value.trim()){ $("perr").textContent="请输入验证码"; return; }
+    this.disabled=true; this.textContent="登录中…";
+    var d=await cloud.auth.verifyOtp({ phone:pendingOtp.phone, verificationId:pendingOtp.verificationId, isExistingUser:pendingOtp.isExistingUser, token:$("code").value.trim() });
+    if(d.error){ this.disabled=false; this.textContent="登录 / 注册"; $("perr").textContent=d.error.message||"验证码错误"; return; }
+    pendingOtp=null; boot();
+  };
+
+  /* ---------- 管理密码 ---------- */
+  async function sha256Hex(text){
+    var buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
+  }
+  $("goPass").onclick=async function(){
+    var pw=$("mpass").value;
+    if(!pw){ msg("passMsg","请输入管理密码","bad"); return; }
+    this.disabled=true; this.textContent="验证中…";
+    var h=await sha256Hex(pw);
+    var r=await cloud.database.rpc("admin_login",{ p_hash:h });
+    this.disabled=false; this.textContent="验证并成为管理员";
+    if(r.error){ msg("passMsg", r.error.message||"验证失败","bad"); return; }
+    if(r.data&&r.data.ok){ $("mpass").value=""; boot(); return; }
+    msg("passMsg", r.data&&r.data.reason==="need_login"?"请先登录":(r.data&&r.data.reason==="not_setup"?"后台未配置管理密码":"管理密码错误"),"bad");
+  };
+
+  /* ---------- 邀请管理 ---------- */
+  function fmtTime(iso){ if(!iso) return "永久"; var d=new Date(iso); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  function genCode(){
+    var ab="ABCDEFGHJKMNPQRSTUVWXYZ23456789", s="";
+    var rnd=new Uint8Array(8); crypto.getRandomValues(rnd);
+    for(var i=0;i<8;i++) s+=ab[rnd[i]%ab.length];
+    return s;
+  }
+  $("goCreate").onclick=async function(){
+    this.disabled=true; this.textContent="生成中…";
+    var hours=parseInt($("ihours").value,10);
+    var row={ code: genCode(), note: $("inote").value.trim()||null,
+      expires_at: hours>0 ? new Date(Date.now()+hours*3600e3).toISOString() : null };
+    var r=await cloud.database.from("invite_codes").insert(row).select();
+    this.disabled=false; this.textContent="➕ 生成邀请链接";
+    if(r.error){ msg("shareBox","", ""); var box=$("shareBox"); box.style.display=""; box.innerHTML='<b style="color:var(--red)">生成失败：'+(r.error.message||"请重试")+"</b>"; return; }
+    var code=r.data[0].code;
+    var link=location.origin+"/?inv="+code;
+    var box=$("shareBox"); box.style.display="";
+    box.innerHTML='<b>✅ 已生成，复制发给朋友（整条链接）：</b><br><span id="shareTxt">'+link+"</span><br>" +
+      '<button class="copy" id="cpShare" style="margin-top:8px">📋 一键复制</button>';
+    $("cpShare").onclick=function(){
+      (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){ $("cpShare").textContent="✅ 已复制"; },
+        function(){ prompt("长按/全选复制：", link); });
+    };
+    $("inote").value="";
+    loadList();
+  };
+
+  async function loadList(){
+    var r=await cloud.database.from("invite_codes").select("*").order("created_at",{ ascending:false }).limit(200);
+    if(r.error){ msg("listMsg", r.error.message||"读取失败","bad"); return; }
+    var rows=r.data||[]; var tb=$("rows"); tb.innerHTML="";
+    if(!rows.length){ msg("listMsg","还没有生成过邀请链接","warn"); return; }
+    msg("listMsg","");
+    rows.forEach(function(it){
+      var expired = it.expires_at && new Date(it.expires_at) < new Date();
+      var status = it.claimed_by ? '<span class="pill p-used">已绑定'+(it.claimed_name?("·"+String(it.claimed_name).slice(0,8)):"")+"</span>"
+                 : expired ? '<span class="pill p-exp">已过期</span>'
+                 : '<span class="pill p-new">未使用</span>';
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td><b>"+it.code+"</b></td><td>"+status+"</td><td>"+(it.note||"-")+"</td><td>"+fmtTime(it.expires_at)+"</td>" +
+        '<td style="white-space:nowrap"><button class="copy" data-code="'+it.code+'">复制链接</button> ' +
+        (expired?"":'<button class="revoke" data-id="'+it.id+'">吊销</button>')+"</td>";
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll(".copy").forEach(function(b){
+      b.onclick=function(){ var link=location.origin+"/?inv="+b.getAttribute("data-code");
+        (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(function(){ b.textContent="✅"; setTimeout(function(){b.textContent="复制链接";},1200); },
+          function(){ prompt("长按/全选复制：", link); }); };
+    });
+    tb.querySelectorAll(".revoke").forEach(function(b){
+      b.onclick=async function(){
+        if(!confirm("吊销后该链接立即失效，确定？")) return;
+        b.disabled=true;
+        var d=await cloud.database.from("invite_codes").delete().eq("id", parseInt(b.getAttribute("data-id"),10)).select();
+        if(!d.error) loadList();
+      };
+    });
+  }
+
+  /* ---------- 启动（OAuth 回调分发优先） ---------- */
+  async function boot(){
+    var url=new URL(location.href);
+    if(url.searchParams.has("code")||url.searchParams.has("error")){
+      var provider=url.searchParams.get("provider");
+      if(provider==="wechat"||provider==="workbuddy"){
+        var handler=provider==="wechat"?cloud.auth.handleWechatWebCallback:cloud.auth.handleWorkBuddyCallback;
+        if(typeof handler==="function"){
+          var res=await handler.call(cloud.auth);
+          if(res.error){ $("vLogin").style.display=""; msg("loginMsg","登录失败："+res.error.message,"bad"); return; }
+          if(res.data){ ["code","state","provider"].forEach(function(k){ url.searchParams.delete(k); });
+            history.replaceState(null,"",url.pathname+(url.searchParams.toString()?"?"+url.searchParams:"")+url.hash); }
+        }
+      }
+    }
+    var sess=await cloud.auth.getSession();
+    if(sess.error||!sess.data){ $("vLogin").style.display=""; return; }
+    var adm=await cloud.database.rpc("is_admin");
+    if(adm.data===true){ $("vPanel").style.display=""; loadList(); return; }
+    $("vPass").style.display="";
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
