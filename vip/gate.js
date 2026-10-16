@@ -107,58 +107,6 @@
   var IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   var IN_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
 
-  // 微信内置浏览器里云服务 API（CORS）被白名单拦截，登录必失败 → 直接给引导
-  // 注意：app.workbuddy.host 在微信 UA 下被平台层 403，所以引导用户去手机浏览器打开 *原始授权版* 域名
-  var ORIGIN_HOST = "jiakao-quiz-16551.app.workbuddy.host";
-  function buildBrowserLink(inv) {
-    var u = "https://" + ORIGIN_HOST + "/";
-    if (inv) u += "?inv=" + encodeURIComponent(inv);
-    return u;
-  }
-  function wxGuide(inv) {
-    var link = buildBrowserLink(inv);
-    var html = UI.head + UI.msg("🌐", "请在浏览器中打开本链接", "warn") +
-      '<div id="jkWxGuide" style="background:#fff;border-radius:14px;padding:18px 16px;box-shadow:0 6px 18px rgba(31,111,235,.06);font-size:14px;color:#1f2430;line-height:1.6">' +
-        '<div style="font-weight:700;font-size:15px;margin-bottom:6px">微信内登录暂不可用</div>' +
-        '<div style="color:#5b6373;font-size:13px;margin-bottom:14px">云服务安全策略会拦截微信内置浏览器的登录请求，按下面 3 步在手机浏览器打开即可。</div>' +
-        '<ol style="padding-left:20px;margin:0 0 14px 0;font-size:13px;color:#3a4150">' +
-          '<li style="margin-bottom:6px">点下方按钮复制链接</li>' +
-          '<li style="margin-bottom:6px">退出微信，打开手机自带浏览器（<b>Safari / Chrome / 夸克 / UC</b> 任一个）</li>' +
-          '<li>在浏览器地址栏粘贴访问</li>' +
-        '</ol>' +
-        '<div style="background:#f4f7fc;border:1px dashed #cdd6e4;border-radius:10px;padding:10px 12px;font-size:12px;color:#1f6feb;word-break:break-all;margin-bottom:10px" id="jkWxLink">' + link + '</div>' +
-        '<button id="jkWxCopy" type="button" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:700;background:#1f6feb;color:#fff;cursor:pointer">📋 复制链接，去浏览器打开</button>' +
-        '<div id="jkWxCopyHint" style="text-align:center;font-size:12px;color:#0a7a3d;margin-top:8px;min-height:16px"></div>' +
-        '<details style="margin-top:14px;font-size:12px;color:#9aa3b2">' +
-          '<summary style="cursor:pointer;user-select:none">仍想在微信内尝试（一般会报错）</summary>' +
-          '<div style="margin-top:8px"><button id="jkWxTryAnyway" type="button" style="background:none;border:1px solid #e7eaf0;padding:8px 12px;border-radius:8px;font-size:12px;color:#5b6373;cursor:pointer">点此尝试登录</button></div>' +
-        '</details>' +
-      '</div>' + UI.foot + "</div>";
-    gate.innerHTML = html;
-
-    document.getElementById("jkWxCopy").onclick = function () {
-      var done = function () {
-        var h = document.getElementById("jkWxCopyHint");
-        h.textContent = "✅ 已复制。退出微信，打开手机浏览器粘贴访问。";
-        this.textContent = "已复制";
-      }.bind(this);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(link).then(done, function () { fallbackCopy(link); done(); });
-      } else {
-        fallbackCopy(link); done();
-      }
-    };
-    document.getElementById("jkWxTryAnyway").onclick = function () { showLogin(inv); };
-  }
-  function fallbackCopy(text) {
-    try {
-      var ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
-      document.body.appendChild(ta); ta.select();
-      document.execCommand("copy"); document.body.removeChild(ta);
-    } catch (e) {}
-  }
-
   function showLogin(inv, preMsg, preTone) {
     var wechatLabel = IS_MOBILE ? "微信扫码（电脑端用）" : "微信扫码登录";
     var html = UI.head;
@@ -351,8 +299,6 @@
     }
 
     var inv = getInv();
-    // 微信内置浏览器：直接给引导卡，避免触发会被 CORS 拦截的 API 请求
-    if (IN_WECHAT) { wxGuide(inv); return; }
     if (inv) {
       // 先查状态给用户预期（不泄露被谁绑定）
       var s = await cloud.database.rpc("invite_status", { p_code: inv });
