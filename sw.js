@@ -1,7 +1,7 @@
 /* 驾考通 PWA Service Worker —— 自动生成，请勿手改（改 build_sw.py） */
 /* 作用：把题目和全部题图缓存到手机本地，之后断网也能刷题；
         iPhone「添加到主屏幕」后即为可离线使用的独立 App。 */
-const CACHE = 'jk-f4c9c6d7';
+const CACHE = 'jk-aa6ba445';
 const CORE = ['./', './index.html', './style.css', './app.js', './data.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon-180.png', './question-bank/index.html', './mnemonics/index.html', './mnemonics/img/mn_color.jpg', './mnemonics/img/mn_signs.jpg', './mnemonics/img/mn_signs_all.jpg', './mnemonics/img/mn_lights.jpg', './mnemonics/img/mn_marks.jpg', './mnemonics/img/mn_fine200.jpg', './answers/index.html'];
 const IMAGES = [
   './img/ke1/004.jpg',
