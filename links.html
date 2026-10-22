@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>驾考通 · 免费资料分发</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#0f172a 0%,#1e3a8a 100%);color:#0f172a;
+    min-height:100vh;padding:24px 14px 48px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:480px}
+  .hero{text-align:center;color:#fff;margin-bottom:22px}
+  .hero h1{font-size:26px;letter-spacing:2px;margin-bottom:6px}
+  .hero .sub{font-size:13px;opacity:.85}
+  .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;
+    box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .card-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+  .icon{font-size:28px;line-height:1}
+  .title{font-size:17px;font-weight:700}
+  .desc{font-size:12px;color:#64748b;margin-top:3px;line-height:1.5}
+  .actions{display:flex;gap:10px}
+  .btn{flex:1;text-align:center;padding:12px 0;border-radius:10px;font-size:14px;
+    font-weight:600;text-decoration:none;cursor:pointer;border:none}
+  .open{background:#1e3a8a;color:#fff}
+  .copy{background:#e2e8f0;color:#0f172a}
+  .url{font-size:11px;color:#94a3b8;word-break:break-all;text-align:center;
+    margin-top:10px;line-height:1.4}
+  .foot{color:#cbd5e1;font-size:12px;text-align:center;line-height:1.7;margin-top:24px}
+  .foot b{color:#fff}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);
+    background:rgba(15,23,42,.92);color:#fff;padding:10px 20px;border-radius:24px;
+    font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>🚗 驾考通</h1>
+      <div class="sub">无门禁 · 不限时 · 永久免费</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-head">
+        <span class="icon">🚗</span>
+        <div>
+          <div class="title">刷题主页</div>
+          <div class="desc">科一 / 科四 500题顺序练习 + 45分钟随机模考</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn open" href="https://a1285891982.github.io/jiakao/" target="_blank" rel="noopener">打开</a>
+        <button class="btn copy" data-url="https://a1285891982.github.io/jiakao/">复制链接</button>
+      </div>
+      <div class="url">https://a1285891982.github.io/jiakao/</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="icon">📚</span>
+        <div>
+          <div class="title">公开全量题库</div>
+          <div class="desc">4369题逐题刷，支持列表视图 / 随时跳题</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn open" href="https://a1285891982.github.io/jiakao/question-bank/" target="_blank" rel="noopener">打开</a>
+        <button class="btn copy" data-url="https://a1285891982.github.io/jiakao/question-bank/">复制链接</button>
+      </div>
+      <div class="url">https://a1285891982.github.io/jiakao/question-bank/</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="icon">💡</span>
+        <div>
+          <div class="title">口诀速记</div>
+          <div class="desc">22条速记口诀，按 12 大类卡片整理</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn open" href="https://a1285891982.github.io/jiakao/mnemonics/" target="_blank" rel="noopener">打开</a>
+        <button class="btn copy" data-url="https://a1285891982.github.io/jiakao/mnemonics/">复制链接</button>
+      </div>
+      <div class="url">https://a1285891982.github.io/jiakao/mnemonics/</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="icon">✅</span>
+        <div>
+          <div class="title">答案速查</div>
+          <div class="desc">只读答案页，支持搜索 / 题型筛选 / 只看有图</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn open" href="https://a1285891982.github.io/jiakao/answers/" target="_blank" rel="noopener">打开</a>
+        <button class="btn copy" data-url="https://a1285891982.github.io/jiakao/answers/">复制链接</button>
+      </div>
+      <div class="url">https://a1285891982.github.io/jiakao/answers/</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="icon">🤖</span>
+        <div>
+          <div class="title">安卓安装包</div>
+          <div class="desc">v1.22 APK，请用浏览器打开下载（微信内会被拦截）</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn open" href="https://a1285891982.github.io/jiakao/jiakao.apk" target="_blank" rel="noopener">打开</a>
+        <button class="btn copy" data-url="https://a1285891982.github.io/jiakao/jiakao.apk">复制链接</button>
+      </div>
+      <div class="url">https://a1285891982.github.io/jiakao/jiakao.apk</div>
+    </div>
+    <div class="foot">
+      <b>苹果 / iOS</b>：用 Safari 打开「刷题主页」→ 分享 → 添加到主屏幕<br>
+      <b>安卓 APK</b>：请务必用<b>浏览器</b>打开下载（微信内会被拦截）<br>
+      题库持续更新，链接长期有效
+    </div>
+  </div>
+  <div class="toast" id="toast">已复制</div>
+  <script>
+    const t=document.getElementById('toast');
+    function showToast(m){t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
+    document.querySelectorAll('.copy').forEach(b=>{
+      b.addEventListener('click',async()=>{
+        const u=b.dataset.url;
+        try{await navigator.clipboard.writeText(u);showToast('已复制链接');}
+        catch(e){const ta=document.createElement('textarea');ta.value=u;document.body.appendChild(ta);ta.select();
+          document.execCommand('copy');ta.remove();showToast('已复制链接');}
+      });
+    });
+  </script>
+</body>
+</html>
